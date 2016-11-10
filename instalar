@@ -45,6 +45,8 @@ Pulse ENTER para comenzar la instalación."
 
 function hd_format(){
 echo "* Preparación del disco duro *"
+echo "Inhabilitando swap..."
+swapoff -a
 echo "Limpiando MBR..."
 dd if=/dev/zero of=$HD count=1 bs=512 &> /dev/null
 
@@ -102,9 +104,9 @@ partprobe $HD
 sleep 5
 
 echo "Formateando la partición de swap..."
+swapoff -a
 NEW_SWAP_UUID=$(mkswap "$HD"2 2> /dev/null | get_uuid)
 
-swapon "$HD"2 &> /dev/null
 echo "Preparación del disco duro finalizada"
 }
 
