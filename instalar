@@ -182,8 +182,7 @@ mount "$HD"1 $tmproot
 echo "Instalando GRUB..."
 grub-install \
      --directory=$tmproot/usr/lib/grub/i386-pc \
-     --locale-directory=$tmproot/usr/share/locale \
-     --boot-directory=$tmproot/boot \
+     --root-directory=$tmproot \
      $HD &> /dev/null
 
 echo "Generando UUID ${HD}2 (swap)..."
