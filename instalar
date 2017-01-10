@@ -38,21 +38,21 @@ perl -ne 'print if s/.*?((?:[[:xdigit:]]+-){4}[[:xdigit:]]+).*/\1/'
 
 function init_msg(){
 START_TIME=`date +%s`
-test "$CONFIRM" = no || pause "** INSTALACIÓN AUTOMÁTICA DE SSOO **
-EL CONTENIDO DEL DISCO DURO SE BORRARÁ POR COMPLETO.
+test "$CONFIRM" = no || pause "** AUTOMATIC OS INSTALLATION **
+THE CONTENTS OF THE HARD DISK WILL BE COMPLETELY ERASED.
 
-Pulse CONTROL+C para detener la instalación.
-Pulse ENTER para comenzar la instalación."
+Press CONTROL+C to cancel the installation.
+Press ENTER to begin the installation."
 }
 
 function hd_format(){
-echo "* Preparación del disco duro *"
-echo "Inhabilitando swap..."
+echo "* Hard disk preparation *"
+echo "Disabling swap..."
 swapoff -a
-echo "Limpiando MBR..."
+echo "Cleaning up MBR..."
 dd if=/dev/zero of=$HD count=1 bs=512 &> /dev/null
 
-echo 'Creando las nuevas particiones...'
+echo 'Creating new partitions...'
 
 if [ "$HD_SWAP" = 'AUTO' ]; then
     local mem_kb=$(sed -rn 's/^MemTotal:\s*([0-9]+) kB/\1/p' /proc/meminfo)
@@ -105,19 +105,19 @@ dmsetup remove_all
 partprobe $HD
 sleep 5
 
-echo "Formateando la partición de swap..."
+echo "Formatting swap partition..."
 swapoff -a
 NEW_SWAP_UUID=$(mkswap "$HD"2 2> /dev/null | get_uuid)
 
-echo "Preparación del disco duro finalizada"
+echo "Finished preparing hard disk"
 }
 
 function img_install(){
-echo "* Instalación de la imagen *"
-echo "Iniciando instalación de imagen"
+echo "* Image installation *"
+echo "Starting image installation"
 
 if [ "$REMOTE_TYPE" = 'NFS' ] && ! is_nfsmount_started; then
-    echo "Servicio NFS desactivado, activando..."
+    echo "NFS service is disabled, enabling..."
     /etc/init.d/nfsmount start &> /dev/null
 fi
 
@@ -142,21 +142,21 @@ if [ ! "$IMAGE_NAME" ]; then
 
     while ! [[ "${SELECTED}" =~ ^[0-9]+$ ]] || [ $SELECTED -lt 0 ] || [ $SELECTED -ge $IMAGE_NUM ]; do
         echo
-        echo "Imagenes disponibles para su instalación:"
+        echo "Images available for installation:"
         for i in `seq 0 $LAST_POS`; do
             IMAGES[$i]=`echo ${IMAGES[$i]} | sed 's,./,,g'`
             echo "$i) ${IMAGES[$i]}"
         done
-        echo "Introduce el número de la imagen que deseas instalar:"
+        echo "Please enter the number of the image that you want to install:"
         read SELECTED
         echo
     done
     IMAGE_NAME=${IMAGES[$SELECTED]%.fsa}
 fi
 
-echo "Has seleccionado la imagen $IMAGE_NAME"
-echo "Comenzando la instalación de la imagen.
-La operación puede durar aproximadamente 5 minutos."
+echo "You have selected image $IMAGE_NAME"
+echo "Starting image installation.
+The operation may take around 5 minutes."
 
 fsarchiver restfs "$IMAGE_DIR/$IMAGE_NAME.fsa" id=0,dest="$HD"1 &> /dev/null
 if [ "$HD_ROOT" != 'FILL' ]; then
@@ -167,29 +167,29 @@ if [ $REMOTE_MOUNTED = yes ]; then
 fi
 
 if [ "$REMOTE_TYPE" = 'NFS' ] && is_nfsmount_started; then
-    echo "Servicio NFS activado, desactivando..."
+    echo "NFS service is enabled, disabling..."
     /etc/init.d/nfsmount start &> /dev/null
 fi
 }
 
 function grub_install(){
-echo "* Instalación de GRUB *"
+echo "* GRUB installation *"
 
-echo "Montando ${HD}1..."
+echo "Mounting ${HD}1..."
 local tmproot=$(mktemp -d)
 mount "$HD"1 $tmproot
 
-echo "Instalando GRUB..."
+echo "Installing GRUB..."
 grub-install \
      --directory=$tmproot/usr/lib/grub/i386-pc \
      --root-directory=$tmproot \
      $HD &> /dev/null
 
-echo "Generando UUID ${HD}2 (swap)..."
+echo "Generating UUID ${HD}2 (swap)..."
 OLD_SWAP_UUID=$(grep swap $tmproot/etc/fstab | get_uuid)
 sed -i "s/$OLD_SWAP_UUID/$NEW_SWAP_UUID/g" $tmproot/etc/fstab
 
-echo "Desmontando ${HD}1"
+echo "Unmounting ${HD}1"
 umount $tmproot
 rmdir $tmproot
 }
@@ -197,8 +197,8 @@ rmdir $tmproot
 function end_msg(){
 END_TIME=`date +%s`
 (( EXEC_TIME = $END_TIME - $START_TIME ))
-echo "Fin de la instalación: Ahora solo falta reiniciar el equio"
-echo "Tiempo de instalación: $EXEC_TIME segundos"
+echo "Installation finished: only rebooting the device is needed."
+echo "Installation time: $EXEC_TIME seconds"
 }
 
 echo
